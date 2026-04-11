@@ -68,7 +68,7 @@ Status icons:
   - Build templates: `Build-Toolkit.ps1`
   - Run tests: `Test-PowerShell.ps1 -Unit -Lint -Integration`
   - Triage milestone issues and PRs (keep or push to next milestone).
-  - Triage untriaged issues (items with "Needs: Review" label).
+  - Triage untriaged issues (items with "Needs: Triage 🔍" label).
   - Review changelog against coding guidelines and fix issues.
   - Update what's-new blurbs in `/docs/` marketing pages.
   - Update FTK survey IDs: handled by `Update-Version.ps1`.

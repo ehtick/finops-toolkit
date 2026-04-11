@@ -51,7 +51,7 @@ Group items by topic, then present via AskUserQuestion. Use `VersionTag` (e.g., 
 
 ### Untriaged issues
 
-If `NeedsReview` in the JSON contains any issues, present them for quick triage using the same Round 1/Round 2 pattern. These are issues with the "Needs: Review 👀" label that haven't been triaged yet.
+If `NeedsReview` in the JSON contains any issues, present them for quick triage using the same Round 1/Round 2 pattern. These are issues with the "Needs: Triage 🔍" label that haven't been triaged yet.
 
 ### Build/test results
 
@@ -107,7 +107,7 @@ Present the remaining manual items from the release checklist via AskUserQuestio
 
 - **Header:** Short item name (e.g., "Feature branches", "Documentation")
 - **Question:** The checklist item text.
-- **Options:** "Done", "Do later"
+- **Options:** "Yes", "Not yet"
 
 Items from the checklist to ask about:
 

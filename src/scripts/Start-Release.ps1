@@ -131,7 +131,7 @@ $title = $title -replace '\\U([0-9A-Fa-f]{8})', { [char]::ConvertFromUtf32([Conv
 
 # Check for existing release issue
 Write-Host "Checking for existing release issue..." -ForegroundColor Gray
-$existingIssues = gh issue list --state open --label "Type: Release 🚀" --search "$versionTag release checklist" --json number,title,url 2>&1
+$existingIssues = gh issue list --state open --label "Type: Release 🚀" --search "$versionTag release checklist" --json number, title, url 2>&1
 if ($LASTEXITCODE -ne 0)
 {
     Write-Error "Failed to search for existing issues: $existingIssues"
@@ -285,7 +285,7 @@ if ($milestone)
 Write-Host ""
 Write-Host "Querying untriaged issues..." -ForegroundColor Cyan
 
-$untriagedLabel = [System.Uri]::EscapeDataString("Needs: Review 👀")
+$untriagedLabel = [System.Uri]::EscapeDataString("Needs: Triage 🔍")
 $untriagedItems = gh api "repos/{owner}/{repo}/issues?state=open&labels=$untriagedLabel&per_page=100" 2>&1 | ConvertFrom-Json
 $untriagedIssues = @()
 foreach ($item in $untriagedItems)
@@ -301,14 +301,15 @@ Write-Host "  Untriaged issues: $($untriagedIssues.Count)" -ForegroundColor Gray
 # --- Return result object ---
 
 $result = @{
-    Version        = $version
-    VersionTag     = $versionTag
-    NextMilestone  = "v$($currentMajor + 1)"
-    Month          = $Month
-    Year           = $Year
-    ReleaseIssue   = if ($releaseIssue) { @{ Number = $releaseIssue.number; Title = $releaseIssue.title; Url = $releaseIssue.url } } else { $null }
-    NeedsReview    = $untriagedIssues
-    Milestone      = if ($milestone) {
+    Version       = $version
+    VersionTag    = $versionTag
+    NextMilestone = "v$($currentMajor + 1)"
+    Month         = $Month
+    Year          = $Year
+    ReleaseIssue  = if ($releaseIssue) { @{ Number = $releaseIssue.number; Title = $releaseIssue.title; Url = $releaseIssue.url } } else { $null }
+    NeedsReview   = $untriagedIssues
+    Milestone     = if ($milestone)
+    {
         @{
             Number     = $milestoneNumber
             Title      = $milestone.title
@@ -316,7 +317,8 @@ $result = @{
             Issues     = $milestoneIssues
             PRs        = $milestonePRs
         }
-    } else { $null }
+    }
+    else { $null }
 }
 
 # Write JSON output if requested
