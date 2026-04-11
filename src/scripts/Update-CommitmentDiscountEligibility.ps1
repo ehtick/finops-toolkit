@@ -109,9 +109,10 @@ $riMeters = @{}
 
 Get-RetailPricePages -Filter "priceType eq 'Reservation'" -MeterRegion 'primary' -OnItem {
     param($item)
-    if (-not $riMeters.ContainsKey($item.meterId))
+    $key = $item.meterId.ToLowerInvariant()
+    if (-not $riMeters.ContainsKey($key))
     {
-        $riMeters[$item.meterId] = $true
+        $riMeters[$key] = $true
     }
 }
 
@@ -127,9 +128,10 @@ $spMeters = @{}
 
 Get-RetailPricePages -Filter "priceType eq 'Consumption'" -MeterRegion 'primary' -OnItem {
     param($item)
-    if ($item.savingsPlan -and $item.savingsPlan.Count -gt 0 -and -not $spMeters.ContainsKey($item.meterId))
+    $key = $item.meterId.ToLowerInvariant()
+    if ($item.savingsPlan -and $item.savingsPlan.Count -gt 0 -and -not $spMeters.ContainsKey($key))
     {
-        $spMeters[$item.meterId] = $true
+        $spMeters[$key] = $true
     }
 }
 
@@ -138,7 +140,7 @@ Write-Host "  SP-eligible meters: $($spMeters.Count)"
 # -----------------------------------------------------------------------
 # Step 3: Merge and output
 # -----------------------------------------------------------------------
-$allMeterIds = @($riMeters.Keys) + @($spMeters.Keys) | Select-Object -Unique | Sort-Object
+$allMeterIds = @($riMeters.Keys) + @($spMeters.Keys) | ForEach-Object { $_.ToLowerInvariant() } | Select-Object -Unique | Sort-Object
 
 $rows = foreach ($meterId in $allMeterIds)
 {

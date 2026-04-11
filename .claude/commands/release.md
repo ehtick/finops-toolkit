@@ -1,6 +1,6 @@
 ---
 description: Walk through the release checklist interactively
-allowed-tools: Read, Grep, Bash(git fetch *), Bash(git checkout *), Bash(git switch *), Bash(git pull *), Bash(git add *), Bash(git commit *), Bash(git push *), Bash(git status*), Bash(git branch *), Bash(gh issue view *), Bash(pwsh -Command ./src/scripts/*), Bash(pwsh -Command "./src/scripts/*)
+allowed-tools: Read, Grep, Bash(git fetch *), Bash(git checkout *), Bash(git switch *), Bash(git pull *), Bash(git add *), Bash(git commit *), Bash(git push *), Bash(git status*), Bash(git branch *), Bash(gh issue view *), Bash(gh issue edit *), Bash(pwsh -Command ./src/scripts/*), Bash(pwsh -Command "./src/scripts/*)
 ---
 
 # Release
@@ -30,7 +30,7 @@ Do the following in parallel:
 
 ### Milestone triage
 
-Analyze all milestone items and recommend keep vs push for each. The release is expected within ~7 days, so push anything complex unless it's a bug fix or a feature explicitly targeting this release. Use labels, titles, and summaries to judge — don't over-explain your reasoning in questions.
+Analyze all milestone issues and PRs and recommend keep vs push for each. The release is expected within ~7 days, so push anything complex unless it's a bug fix or a feature explicitly targeting this release. Use labels, titles, and summaries to judge — don't over-explain your reasoning in questions.
 
 Group items by topic, then present via AskUserQuestion. Use the version tag from the JSON (e.g., "v14") and the next milestone title (e.g., "v15") in option labels.
 
@@ -47,7 +47,7 @@ Group items by topic, then present via AskUserQuestion. Use the version tag from
 - **Options:** "Keep in {version} (Recommended)" or "Push to {next version} (Recommended)" (whichever you recommend first), the other option, and "Investigate further".
 - If "Investigate further" is chosen, fetch details via `gh issue view {number}`, provide deeper analysis, and re-present.
 
-**After triage:** Report which items are staying and which are being pushed. Do NOT move milestones — just report for the user to act on.
+**After triage:** Report which issues and PRs are staying and which are being pushed. Move pushed items (both issues and PRs) to the next milestone via `gh issue edit {number} --milestone {next version}`.
 
 ### Untriaged issues
 
@@ -78,7 +78,18 @@ After applying fixes, show a summary of what was changed so the user can review.
 
 Find all `<div id="whats-new">` blocks in `/docs/`. For each: if the tool has a section in the changelog, uncomment the block (if needed) and update the month, year, version tag, and paragraph with a 1-2 sentence summary. If the tool has no changelog section, comment out the block.
 
-Show a summary of all changelog and what's new changes for the user to review, then ask via AskUserQuestion whether to commit and push to the prep branch.
+### FinOps hubs documentation
+
+Review the changelog's FinOps hubs section and update the following files for any applicable changes. Hub schema version changes (e.g., v1_0 → v1_2) are the primary trigger — update the upgrade guide (steps 7 and 8), data model, data processing, and compatibility chart. Also review for other changelog-driven updates like new datasets, renamed columns, or deprecated functions.
+
+- @docs-mslearn/toolkit/hubs/upgrade.md
+- @docs-mslearn/toolkit/hubs/data-model.md
+- @docs-mslearn/toolkit/hubs/data-processing.md
+- @docs-mslearn/toolkit/hubs/compatibility.md
+
+### Commit and push
+
+Show a summary of all changelog, what's new, and guide changes for the user to review, then ask via AskUserQuestion whether to commit and push to the prep branch.
 
 ### Next actions
 
@@ -89,3 +100,24 @@ After all triage and build/test results are reported, analyze the kept milestone
 - Issues with no open PRs and no one actively working them
 
 Present as a prioritized list — no AUQ needed, just a summary the user can act on.
+
+### Manual checklist status
+
+Present the remaining manual items from the release checklist via AskUserQuestion so the user can confirm status. Group related items (up to 4 per AUQ call). For each item:
+
+- **Header:** Short item name (e.g., "Feature branches", "Documentation")
+- **Question:** The checklist item text.
+- **Options:** "Done", "Do later"
+
+Items from the checklist to ask about:
+
+1. Remaining milestone issues and PRs moved (stragglers after triage).
+2. PRs submitted for issues that can be resolved.
+3. Open PRs completed that are ready to be resolved.
+4. No pending changes in dev.
+5. Feature branches updated and merged.
+6. All features code complete.
+7. New/updated functionality documented.
+8. New tool setup (marketing page, MS Learn docs, TOC, advisory council) — only if applicable.
+
+After all responses, update the release tracking issue checkboxes. Fetch the issue body with `gh issue view {number} --json body`, replace `- [ ]` with `- [x]` for completed items (match on a unique substring of the checkbox text), and push the updated body back with `gh issue edit {number} --body-file`. Report which items still need work.
