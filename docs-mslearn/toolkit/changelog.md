@@ -51,14 +51,13 @@ _Released April 2026_
   - Added ability to ingest recommendations from Azure Advisor and custom Azure Resource Graph queries ([#2011](https://github.com/microsoft/finops-toolkit/issues/2011)).
     - Custom recommendations include stopped VMs, unattached disks, underutilized resources, and more.
   - Added [Copilot Studio agent template](hubs/configure-ai-copilot-studio.md) with instructions, schema reference, query catalog, and weekly report guide for creating a FinOps Hub Agent in Microsoft Copilot Studio using the Kusto Query MCP Server.
-  - Added typed metadata contracts between hub apps to formalize dependency management and enable compile-time verification of inter-app interfaces.
+  - Added typed metadata contracts between hub apps for consistent dependency management.
 - **Changed**
-  - Improved deployment UI to consolidate hub mode selection into a single radio button group with four mutually exclusive options: None (storage only for Power BI reports), Azure Data Explorer, Microsoft Fabric, or Remote Hub ([#1929](https://github.com/microsoft/finops-toolkit/issues/1929)).
-  - Remote Hub configuration (storage URI, storage key, and purge protection) is now displayed in the Basics tab when Remote Hub mode is selected, making the mutual exclusivity clear.
-  - Data Explorer SKU and retention settings are now only visible when Azure Data Explorer mode is selected.
+  - Consolidated hub mode selection into a single radio button group for storage only, Azure Data Explorer, Microsoft Fabric, or Remote Hub ([#1929](https://github.com/microsoft/finops-toolkit/issues/1929)).
+  - Moved Remote Hub settings to the Basics tab and Data Explorer settings to only show when applicable.
 - **Fixed**
   - Fixed Init-DataFactory deployment script failing when an Event Grid subscription is already provisioning by checking subscription status before attempting subscribe/unsubscribe and polling separately for completion ([#1996](https://github.com/microsoft/finops-toolkit/issues/1996)).
-  - Added row count check in `msexports_ExecuteETL` pipeline to fix error when export files have no rows ([#1535](https://github.com/microsoft/finops-toolkit/issues/1535)).
+  - Fixed error in `msexports_ExecuteETL` pipeline when export files have no rows ([#1535](https://github.com/microsoft/finops-toolkit/issues/1535)).
 
 ### [FinOps workbooks](workbooks/finops-workbooks-overview.md) v14
 
@@ -69,19 +68,19 @@ _Released April 2026_
     - Azure Hybrid Benefit doesn't apply to Dev/Test resources as Windows licenses are already covered by Visual Studio subscriptions.
   - Fixed Azure Hybrid Benefit reports to include Windows VMs from all publishers, not just Microsoft-published images ([#1793](https://github.com/microsoft/finops-toolkit/issues/1793)).
 
-### [Open data](open-data.md) v14
-
-**[Commitment discount eligibility](open-data.md#commitment-discount-eligibility)**
-
-- **Added**
-  - Added a new [Commitment discount eligibility](open-data.md#commitment-discount-eligibility) dataset with pre-computed reservation and savings plan eligibility per meter, sourced from the Azure Retail Prices API.
-
 ### [PowerShell module](powershell/powershell-commands.md) v14
 
 - **Added**
   - Added `-WhatIf` support for resource provider registration in [New-FinOpsCostExport](powershell/cost/new-finopscostexport.md).
 - **Fixed**
   - Fixed inverted verbose logging in [Start-FinOpsCostExport](powershell/cost/start-finopscostexport.md) that showed blank dates when a date range was specified.
+
+### [Open data](open-data.md) v14
+
+**[Commitment discount eligibility](open-data.md#commitment-discount-eligibility)**
+
+- **Added**
+  - Added a new [Commitment discount eligibility](open-data.md#commitment-discount-eligibility) dataset with pre-computed reservation and savings plan eligibility per meter, sourced from the Azure Retail Prices API.
 
 <!-- prettier-ignore-start -->
 > [!div class="nextstepaction"]
