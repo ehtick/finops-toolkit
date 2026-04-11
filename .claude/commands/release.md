@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Bash(git fetch *), Bash(git checkout *), Bash(git swi
 
 ## Phase 1: Setup
 
-Fetch origin and create a release prep branch from `origin/dev` (e.g., `{username}/v14`). If the branch already exists locally, switch to it and pull.
+Fetch origin and create a release prep branch (`{username}/{versionTag}-prep`, e.g., `flanakin/v14-prep`) from `origin/dev`. If the branch already exists locally, switch to it and pull.
 
 ```bash
 pwsh -Command "./src/scripts/Start-Release.ps1 -OutputFile (Join-Path ([System.IO.Path]::GetTempPath()) 'ftk-release.json')"
@@ -19,7 +19,7 @@ Read the JSON file from the temp path printed in the output. Report the release 
 
 Do the following in parallel:
 
-1. **Launch background build/test commands.** Use Bash with `run_in_background` for each:
+1. **Launch background build/test commands.** Use the Bash tool directly (not Task agents) with `run_in_background` for each. This ensures `allowed-tools` permissions apply:
 
    - `pwsh -Command ./src/scripts/Build-Toolkit.ps1`
    - `pwsh -Command "./src/scripts/Test-PowerShell.ps1 -Unit"`
@@ -32,7 +32,7 @@ Do the following in parallel:
 
 Analyze all milestone issues and PRs and recommend keep vs push for each. The release is expected within ~7 days, so push anything complex unless it's a bug fix or a feature explicitly targeting this release. Use labels, titles, and summaries to judge — don't over-explain your reasoning in questions.
 
-Group items by topic, then present via AskUserQuestion. Use the version tag from the JSON (e.g., "v14") and the next milestone title (e.g., "v15") in option labels.
+Group items by topic, then present via AskUserQuestion. Use `VersionTag` (e.g., "v14") and `NextMilestone` (e.g., "v15") from the JSON in option labels.
 
 **Round 1: Bulk triage by group** (up to 4 groups per AskUserQuestion call).
 

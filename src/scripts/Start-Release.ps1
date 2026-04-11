@@ -303,6 +303,7 @@ Write-Host "  Untriaged issues: $($untriagedIssues.Count)" -ForegroundColor Gray
 $result = @{
     Version        = $version
     VersionTag     = $versionTag
+    NextMilestone  = "v$($currentMajor + 1)"
     Month          = $Month
     Year           = $Year
     ReleaseIssue   = if ($releaseIssue) { @{ Number = $releaseIssue.number; Title = $releaseIssue.title; Url = $releaseIssue.url } } else { $null }
