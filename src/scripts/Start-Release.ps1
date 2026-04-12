@@ -131,7 +131,7 @@ $title = $title -replace '\\U([0-9A-Fa-f]{8})', { [char]::ConvertFromUtf32([Conv
 
 # Check for existing release issue
 Write-Host "Checking for existing release issue..." -ForegroundColor Gray
-$existingIssues = gh issue list --state open --label "Type: Release 🚀" --search "$versionTag release checklist" --json number, title, url 2>&1
+$existingIssues = gh issue list --state open --label "Type: Release 🚀" --search "$versionTag release checklist" --json number,title,url 2>&1
 if ($LASTEXITCODE -ne 0)
 {
     Write-Error "Failed to search for existing issues: $existingIssues"
@@ -280,7 +280,24 @@ if ($milestone)
     Write-Host "  Issues: $($milestoneIssues.Count)  PRs: $($milestonePRs.Count)" -ForegroundColor Gray
 }
 
-# --- Step 6: Query untriaged issues ---
+# --- Step 6: Query open PRs without milestones ---
+
+Write-Host ""
+Write-Host "Querying open PRs without milestones..." -ForegroundColor Cyan
+
+$allOpenPRs = gh api "repos/{owner}/{repo}/pulls?state=open&per_page=100" 2>&1 | ConvertFrom-Json
+$unassignedPRs = @()
+foreach ($pr in $allOpenPRs)
+{
+    if (-not $pr.milestone)
+    {
+        $unassignedPRs += ConvertTo-ItemEntry $pr
+    }
+}
+
+Write-Host "  PRs without milestones: $($unassignedPRs.Count)" -ForegroundColor Gray
+
+# --- Step 7: Query untriaged issues ---
 
 Write-Host ""
 Write-Host "Querying untriaged issues..." -ForegroundColor Cyan
@@ -298,6 +315,40 @@ foreach ($item in $untriagedItems)
 
 Write-Host "  Untriaged issues: $($untriagedIssues.Count)" -ForegroundColor Gray
 
+# --- Step 8: Detect new tools in changelog ---
+
+Write-Host ""
+Write-Host "Checking for new tools in changelog..." -ForegroundColor Cyan
+
+$changelogPath = Join-Path $repoRoot 'docs-mslearn/toolkit/changelog.md'
+$newTools = @()
+if (Test-Path $changelogPath)
+{
+    $changelogContent = Get-Content $changelogPath -Raw
+
+    # Split into version sections (## v{number})
+    $versionSections = [regex]::Split($changelogContent, '(?m)^## v')
+    # First two non-empty sections are current and previous release
+    $sections = $versionSections | Where-Object { $_.Trim() -ne '' } | Select-Object -First 2
+
+    if ($sections.Count -ge 2)
+    {
+        # Extract tool section names (### [Tool name](...) v{version})
+        $currentTools = [regex]::Matches($sections[0], '(?m)^### \[(.+?)\]') | ForEach-Object { $_.Groups[1].Value }
+        $previousTools = [regex]::Matches($sections[1], '(?m)^### \[(.+?)\]') | ForEach-Object { $_.Groups[1].Value }
+
+        $newTools = @($currentTools | Where-Object { $_ -notin $previousTools })
+        if ($newTools.Count -gt 0)
+        {
+            Write-Host "  New tools: $($newTools -join ', ')" -ForegroundColor Yellow
+        }
+        else
+        {
+            Write-Host "  No new tools detected." -ForegroundColor Gray
+        }
+    }
+}
+
 # --- Return result object ---
 
 $result = @{
@@ -307,7 +358,9 @@ $result = @{
     Month         = $Month
     Year          = $Year
     ReleaseIssue  = if ($releaseIssue) { @{ Number = $releaseIssue.number; Title = $releaseIssue.title; Url = $releaseIssue.url } } else { $null }
-    NeedsReview   = $untriagedIssues
+    UnassignedPRs = $unassignedPRs
+    NeedsTriage   = $untriagedIssues
+    NewTools      = $newTools
     Milestone     = if ($milestone)
     {
         @{

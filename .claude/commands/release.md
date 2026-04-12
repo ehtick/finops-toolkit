@@ -28,30 +28,32 @@ Do the following in parallel:
 
 2. **Triage milestone items** using the layered approach below.
 
-### Milestone triage
+### Triage
 
-Analyze all milestone issues and PRs and recommend keep vs push for each. The release is expected within ~7 days, so push anything complex unless it's a bug fix or a feature explicitly targeting this release. Use labels, titles, and summaries to judge — don't over-explain your reasoning in questions.
+Triage items in three passes using the Round 1/Round 2 pattern below. The release is expected within ~7 days, so push anything complex unless it's a bug fix or a feature explicitly targeting this release. Use labels, titles, and summaries to judge — don't over-explain your reasoning in questions. Use `VersionTag` (e.g., "v14") and `NextMilestone` (e.g., "v15") from the JSON in option labels.
 
-Group items by topic, then present via AskUserQuestion. Use `VersionTag` (e.g., "v14") and `NextMilestone` (e.g., "v15") from the JSON in option labels.
+**Pass 1: PRs without milestones** (`UnassignedPRs`). Options: "Add to {version}", "Push to {next version}", "Skip (leave unassigned)".
+
+**Pass 2: Milestone issues and PRs** (`Milestone.Issues` and `Milestone.PRs`). Options: "Keep in {version}", "Push to {next version}".
+
+**Pass 3: Untriaged issues** (`NeedsTriage`). These have the "Needs: Triage 🔍" label. Same options as pass 2, plus "Close" if the issue appears stale or invalid.
+
+Skip any pass where the array is empty.
 
 **Round 1: Bulk triage by group** (up to 4 groups per AskUserQuestion call).
 
-- **Header:** 1-3 word group name
+- **Header:** 1-2 word group name
 - **Question:** Plain text, no formatting. "{count} items: #{number} {short title}, #{number} {short title}, ..." Titles 3-5 words each.
-- **Options:** Recommendation first with "(Recommended)". Always include: "Keep all", "Push all", "Review individually".
+- **Options:** Recommendation first with "(Recommended)". Always include the pass-specific options plus "Review individually".
 
 **Round 2: Individual review** (only for groups where user chose "Review individually").
 
-- **Header:** "#{number}: {1-3 word title}"
+- **Header:** "#{number}: {1-2 word title}"
 - **Question:** Plain text summary from JSON data, up to 100 words. State your recommendation and why.
-- **Options:** "Keep in {version} (Recommended)" or "Push to {next version} (Recommended)" (whichever you recommend first), the other option, and "Investigate further".
+- **Options:** Pass-specific options (recommendation first with "(Recommended)") plus "Investigate further".
 - If "Investigate further" is chosen, fetch details via `gh issue view {number}`, provide deeper analysis, and re-present.
 
-**After triage:** Report which issues and PRs are staying and which are being pushed. Move pushed items (both issues and PRs) to the next milestone via `gh issue edit {number} --milestone {next version}`.
-
-### Untriaged issues
-
-If `NeedsReview` in the JSON contains any issues, present them for quick triage using the same Round 1/Round 2 pattern. These are issues with the "Needs: Triage 🔍" label that haven't been triaged yet.
+**After triage:** Report which items are staying, pushed, or skipped. Apply changes via `gh issue edit {number} --milestone {version}`.
 
 ### Build/test results
 
@@ -101,23 +103,35 @@ After all triage and build/test results are reported, analyze the kept milestone
 
 Present as a prioritized list — no AUQ needed, just a summary the user can act on.
 
-### Manual checklist status
+### New tool check
 
-Present the remaining manual items from the release checklist via AskUserQuestion so the user can confirm status. Group related items (up to 4 per AUQ call). For each item:
+If `NewTools` in the JSON lists any new tools (tool sections in this release's changelog that weren't in the previous release), present via AskUserQuestion:
 
-- **Header:** Short item name (e.g., "Feature branches", "Documentation")
-- **Question:** The checklist item text.
-- **Options:** "Yes", "Not yet"
+- **Header:** "New tools"
+- **Question:** "{count} new tool(s) in this release: {names}. These may need marketing pages, MS Learn docs, TOC entries, and advisory council updates. Are all set up?"
+- **Options:** "Yes, all done", "No, help me set them up", "Skip for now"
 
-Items from the checklist to ask about:
+If the user chooses "No, help me set them up":
 
-1. Remaining milestone issues and PRs moved (stragglers after triage).
-2. PRs submitted for issues that can be resolved.
-3. Open PRs completed that are ready to be resolved.
-4. No pending changes in dev.
-5. Feature branches updated and merged.
-6. All features code complete.
-7. New/updated functionality documented.
-8. New tool setup (marketing page, MS Learn docs, TOC, advisory council) — only if applicable.
+1. For each new tool, ask via AskUserQuestion what type it is (new standalone tool, new open data file, new sub-tool like a PBI report or workbook or hub add-on).
+2. Based on the type, check if MS Learn and marketing pages exist. Report what's missing.
+3. Enter plan mode to create missing pages and update TOC/advisory council. After plan mode executes, commit only the files changed during that phase to the prep branch.
+4. After committing, summarize what was added and say "Review changes and say 'done' when ready to proceed."
 
-After all responses, update the release tracking issue checkboxes. Fetch the issue body with `gh issue view {number} --json body`, replace `- [ ]` with `- [x]` for completed items (match on a unique substring of the checkbox text), and push the updated body back with `gh issue edit {number} --body-file`. Report which items still need work.
+If the user chooses "Skip for now", note it in the release readiness summary as an outstanding item so it isn't forgotten.
+
+---
+
+## Release readiness
+
+Update the release tracking issue checkboxes:
+
+1. Run `gh issue view {number} --json body --jq .body > /tmp/release-issue-body.md` to save the issue body.
+2. Read the file with the Read tool. Replace `- [ ]` with `- [x]` for completed items (match on a unique substring of the checkbox text). Write the updated body back to the file.
+3. Run `gh issue edit {number} --body-file /tmp/release-issue-body.md` to push the updates.
+
+Then present a summary and next action via AskUserQuestion:
+
+- **Header:** "Next step"
+- **Question:** Summary of release status: triage results, build/test results, changelog and docs updates, items still outstanding. End with "What would you like to do next?"
+- **Options:** "Continue to finalize release", "Work on outstanding items", "Done for now"
